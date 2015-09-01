@@ -48,6 +48,16 @@ void BulkSendApplicationTcpTrace (Ptr<BulkSendApplication> application, std::str
 	Simulator::Schedule (traceStart + NanoSeconds (1), &DoBulkSendApplicationTcpTrace,
 			application, traceFilePrefix, traceEnd);
 }
+void NewSeqNumTracer (std::ofstream *seqFile, Ptr<const Packet> packet, Ptr<Ipv4> ipv4, uint32_t interface) {
+	Ptr<Packet> pkt = packet->Copy ();
+
+	Ipv4Header ipHeader;
+	pkt->RemoveHeader (ipHeader);
+
+	TcpHeader tcpHeader;
+	pkt->PeekHeader (tcpHeader);
+	*seqFile << Simulator::Now ().GetSeconds () << "\t" << tcpHeader.GetSequenceNumber () << std::endl;
+}
 
 void ReceiverTcpTrace (Ptr<Ipv4L3Protocol> ipv4, std::string traceFilePrefix, Time traceEnd) {
 	using namespace std;
