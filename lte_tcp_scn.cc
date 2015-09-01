@@ -11,7 +11,13 @@
 #include "ns3/config-store.h"
 
 using namespace ns3;
-
+template <typename T>
+void NewValueTracerIntoStream (std::ofstream *ofs, T oldValue, T newValue) {
+	*ofs << Simulator::Now ().GetSeconds () << '\t' << newValue <<std::endl;
+}
+void NewTimeValueTracerIntoStream (std::ofstream *ofs, Time oldValue, Time newValue) {
+	*ofs << Simulator::Now ().GetSeconds () << '\t' << newValue.GetSeconds () << std::endl;
+}
 void DoBulkSendApplicationTcpTrace (Ptr<BulkSendApplication> application, std::string traceFilePrefix, Time traceEnd) {
 	using namespace std;
 	Ptr<TcpSocketBase> socket = application->GetSocket ()->GetObject<TcpSocketBase> ();
