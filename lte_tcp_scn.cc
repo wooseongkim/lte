@@ -99,6 +99,10 @@ int main (int argc, char *argv[])
 	Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper> ();
 	lteHelper->SetEpcHelper (epcHelper);
 	
+	 lteHelper->EnablePhyTraces ();
+	 lteHelper->EnableMacTraces ();
+	 lteHelper->EnableRlcTraces ();
+	
 	//LOAD default config; wkim-unclear to call this func.
 	ConfigStore inputConfig;
 	inputConfig.ConfigureDefaults();
@@ -142,16 +146,30 @@ int main (int argc, char *argv[])
     //Ipv4Address remoteHostAddr = hostIpIfacesContainer.GetAddress (1);
 	
 	//Mobility
-	Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-    for (uint16_t i = 0; i < numberOfUEs+1; i++)
-	{
-	positionAlloc->Add (Vector(distance * i, 0, 0));
-	}
-	MobilityHelper mobility; // (0, 0), ConstantPosition
-	//mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-	//mobility.SetPositionAllocator(positionAlloc);
+	MobilityHelper mobility;
+	mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
 	mobility.Install(enbContainer);
 	mobility.Install(ueContainer);
+	
+	//Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+	// for (uint16_t i = 0; i < numberOfUEs+1; i++)
+	//{
+	//positionAlloc->Add (Vector(distance * i, 0, 0));
+	//}
+	 // (0, 0), ConstantPosition
+	//mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+	//mobility.SetPositionAllocator(positionAlloc);
+  	double distance_temp [] = {100,100,100,100};
+  	std::vector<double> userDistance;
+  	userDistance.assign (distance_temp, distance_temp + 4);
+  	for (int i = 0; i < 3; i++)
+    	{
+	 	Ptr<ConstantPositionMobilityModel> mm = ueContainer.Get (i)->GetObject<ConstantPositionMobilityModel> ();
+      		mm->SetPosition (Vector (userDistance[i], 0.0, 0.0));
+    	} 
+    	Ptr<ConstantPositionMobilityModel> mm = enbContainer.Get (0)->GetObject<ConstantPositionMobilityModel> ();
+      	mm->SetPosition (Vector (0.0, 0.0, 0.0));
+	
 
 	// Install LTE Devices to the nodes
 	NetDeviceContainer enbLteDevs = lteHelper->InstallEnbDevice (enbContainer);
