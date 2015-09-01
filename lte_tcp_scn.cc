@@ -49,6 +49,12 @@ void BulkSendApplicationTcpTrace (Ptr<BulkSendApplication> application, std::str
 			application, traceFilePrefix, traceEnd);
 }
 
+void ReceiverTcpTrace (Ptr<Ipv4L3Protocol> ipv4, std::string traceFilePrefix, Time traceEnd) {
+	using namespace std;
+	ofstream *rseqFile = new ofstream ((traceFilePrefix + ".rseq").c_str ());
+	ipv4->TraceConnectWithoutContext ("Rx", MakeBoundCallback (&NewSeqNumTracer, rseqFile));
+	Simulator::Schedule (traceEnd, &ofstream::close, rseqFile);
+}
 
 int main (int argc, char *argv[])
 {	
