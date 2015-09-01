@@ -24,6 +24,12 @@ int main (int argc, char *argv[])
 	double applicationEnd = 101.0;
 	double simulationEnd = applicationEnd + 1.0; 
 	double ltesourcestart = applicationStart;
+	std::string traceFilePrefix = "trace", traceFilePrefixLte;
+
+	//Enough buffer
+	Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (640000));
+	Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (640000));
+	
     CommandLine cmd;
 #if 0
 
@@ -142,7 +148,14 @@ int main (int argc, char *argv[])
 		ltesourcestart = ltesourcestart + 0.2;
 		ApplicationContainer tmpApp;
 		tmpApp.Add (serverApps.Get(serverApps.GetN () - 1));
-		tmpApp.Start (Seconds (ltesourcestart));		
+		tmpApp.Start (Seconds (ltesourcestart));	
+		
+		if(i==0 && i !=remotesHostContainer.GetN()-1) {
+			/*forlte = i;*/
+			traceFilePrefixLte = traceFilePrefix + "-ues"/* + char('0'+forlte)*/;
+			BulkSendApplicationTcpTrace (sourceApp.Get(sourceApp.GetN ()-1)->GetObject<BulkSendApplication> (), traceFilePrefixLte, Seconds (ltesourcestart + 0.2), Seconds (simulationEnd));
+			ReceiverTcpTrace (ues.Get(i)->GetObject<Ipv4L3Protocol> (), traceFilePrefixLte, Seconds (simulationEnd));
+		}
 
 		PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dlPort));
 		clientApps.Add (sink.Install (ueContainer.Get (i)));
