@@ -12,6 +12,38 @@
 
 using namespace ns3;
 
+void DoBulkSendApplicationTcpTrace (Ptr<BulkSendApplication> application, std::string traceFilePrefix, Time traceEnd) {
+	using namespace std;
+	Ptr<TcpSocketBase> socket = application->GetSocket ()->GetObject<TcpSocketBase> ();
+
+	ofstream *cwndFile = new ofstream ((traceFilePrefix + ".cwnd").c_str());
+	socket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&NewValueTracerIntoStream<uint32_t>, cwndFile));
+	Simulator::Schedule (traceEnd, &ofstream::close, cwndFile);
+
+	ofstream *rttFile = new ofstream ((traceFilePrefix + ".rtt").c_str());
+	socket->TraceConnectWithoutContext ("RTT", MakeBoundCallback (&NewTimeValueTracerIntoStream, rttFile));
+	Simulator::Schedule (traceEnd, &ofstream::close, rttFile);
+
+	ofstream *rtoFile = new ofstream ((traceFilePrefix + ".rto").c_str ());
+	socket->TraceConnectWithoutContext ("RTO", MakeBoundCallback (&NewTimeValueTracerIntoStream, rtoFile));
+	Simulator::Schedule (traceEnd, &ofstream::close, rtoFile);
+
+	ofstream *timeoutFile = new ofstream ((traceFilePrefix + ".timeout").c_str ());
+	socket->TraceConnectWithoutContext ("NUM_TIMEOUTS", MakeBoundCallback (&NewValueTracerIntoStream<uint32_t>, timeoutFile));
+	Simulator::Schedule (traceEnd, &ofstream::close, timeoutFile);
+
+	ofstream *frcFile = new ofstream ((traceFilePrefix + ".frc").c_str ());
+	socket->TraceConnectWithoutContext ("NUM_FAST_RECOVERIES", MakeBoundCallback (&NewValueTracerIntoStream<uint32_t>, frcFile));
+	Simulator::Schedule (traceEnd, &ofstream::close, frcFile);
+}
+
+void BulkSendApplicationTcpTrace (Ptr<BulkSendApplication> application, std::string traceFilePrefix, Time traceStart, Time traceEnd) {
+	//Scheduling resolution: 1 ns
+	Simulator::Schedule (traceStart + NanoSeconds (1), &DoBulkSendApplicationTcpTrace,
+			application, traceFilePrefix, traceEnd);
+}
+
+
 int main (int argc, char *argv[])
 {	
 	uint16_t numberOfUEs = 4;
