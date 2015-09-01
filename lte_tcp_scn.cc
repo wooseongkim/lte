@@ -15,17 +15,18 @@ using namespace ns3;
 int main (int argc, char *argv[])
 {	
 	uint16_t numberOfUEs = 4;
-	double simTime = 1.1;
+    //double simTime = 1.1;
 	double distance = 60.0;
-	double interPacketInterval = 100;
+    //double interPacketInterval = 100;
 	
 	int packetSize = 1400;
 	double applicationStart = 1.0;
 	double applicationEnd = 101.0;
 	double simulationEnd = applicationEnd + 1.0; 
 	double ltesourcestart = applicationStart;
+    CommandLine cmd;
 #if 0
-	CommandLine cmd;
+
 	cmd.AddValue("numberOfNodes", "Number of eNodeBs + UE pairs", numberOfNodes);
 	cmd.AddValue("simTime", "Total duration of the simulation [s])", simTime);
 	cmd.AddValue("distance", "Distance between eNBs [m]", distance);
@@ -53,7 +54,7 @@ int main (int argc, char *argv[])
 	
 	// Create the Internet
 	InternetStackHelper internet;
-	internet.Install (remoteHostContainer);
+    internet.Install (remotesHostContainer);
 
 	
 	//P2P link
@@ -78,11 +79,11 @@ int main (int argc, char *argv[])
 		hostIpIfacesContainer = ipv4.Assign (p2pDevs);	//??
 	}
 	// interface 0 is localhost, 1 is the p2p device
-	Ipv4Address remoteHostAddr = hostIpIfacesContainer.GetAddress (1);
+    //Ipv4Address remoteHostAddr = hostIpIfacesContainer.GetAddress (1);
 	
 	//Mobility
 	Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-	for (uint16_t i = 0; i < numberOfNodes; i++)
+    for (uint16_t i = 0; i < numberOfUEs+1; i++)
 	{
 	positionAlloc->Add (Vector(distance * i, 0, 0));
 	}
@@ -105,8 +106,8 @@ int main (int argc, char *argv[])
 	Ipv4StaticRoutingHelper routing;
 
 	//RemotesForUes -> UEs
-	for (uint32_t i = 0; i < remoteHostContainer.GetN (); i++){
-		Ptr<Ipv4StaticRouting> remoteHostStaticRoutingEntity = routing.GetStaticRouting (remoteHostContainer.Get (i)->GetObject<Ipv4> ());
+    for (uint32_t i = 0; i < remotesHostContainer.GetN (); i++){
+        Ptr<Ipv4StaticRouting> remoteHostStaticRoutingEntity = routing.GetStaticRouting (remotesHostContainer.Get (i)->GetObject<Ipv4> ());
 		remoteHostStaticRoutingEntity->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
 	}
 	//UEs -> RemotesForUes
@@ -118,7 +119,7 @@ int main (int argc, char *argv[])
 	
 	//lte->Attach (ueDevs, enbDev.Get (0));	
 	// Attach one UE per eNodeB
-	for (uint16_t i = 0; i < numberOfNodes; i++)
+    for (uint16_t i = 0; i < numberOfUEs; i++)
 	{
 		lteHelper->Attach (ueLteDevs.Get(i), enbLteDevs.Get(0));
 		// side effect: the default EPS bearer will be activated
@@ -126,8 +127,8 @@ int main (int argc, char *argv[])
   
 	//Application
 	uint16_t dlPort = 1234;
-	uint16_t ulPort = 2000;
-	uint16_t otherPort = 3000;
+    //uint16_t ulPort = 2000;
+    //uint16_t otherPort = 3000;
 	ApplicationContainer clientApps;		//ueSinkApp
 	ApplicationContainer serverApps;
 	
@@ -142,7 +143,7 @@ int main (int argc, char *argv[])
 		ApplicationContainer tmpApp;
 		tmpApp.Add (serverApps.Get(serverApps.GetN () - 1));
 		tmpApp.Start (Seconds (ltesourcestart));		
-		}
+
 		PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), dlPort));
 		clientApps.Add (sink.Install (ueContainer.Get (i)));
 	}
@@ -154,4 +155,7 @@ int main (int argc, char *argv[])
 	Simulator::Stop (Seconds (simulationEnd)); 
 	Simulator::Run ();
 	Simulator::Destroy (); return 0;
+	
+}
+
 	
